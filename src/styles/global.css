@@ -290,6 +290,18 @@ body {
   z-index: 2;
 }
 
+.mooring-plot__depth-guide {
+  position: absolute;
+  top: var(--depth-position, 0%);
+  right: 0;
+  left: calc((var(--mooring-outline-size) / 2) + 8px);
+  height: 0;
+  border-top: 1px dashed rgba(71, 85, 105, 0.9);
+  pointer-events: none;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
 .mooring-plot__body--hovmoller .mooring-plot__image {
   position: absolute;
   inset: 0 0 0 calc((var(--mooring-outline-size) / 2) + 8px);

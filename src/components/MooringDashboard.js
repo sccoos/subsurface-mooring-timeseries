@@ -4,7 +4,7 @@ import {MooringHovmoller} from "./MooringHovmoller.js";
 import {MooringTimeseriesAtDepth} from "./MooringTimeseriesAtDepth.js";
 
 function MooringDashboard({outlineUrl, placeholderUrl}) {
-  const [selectedDepth, setSelectedDepth] = useState(0);
+  const [selectedDepth, setSelectedDepth] = useState(30);
   const [selectedMooring, setSelectedMooring] = useState("M1 Mooring");
 
   return h(

@@ -71,7 +71,10 @@ export function MooringHovmoller({outlineUrl, placeholderUrl, selectedDepth, set
       ),
       h(
         "div",
-        {className: "mooring-plot__body mooring-plot__body--hovmoller"},
+        {
+          className: "mooring-plot__body mooring-plot__body--hovmoller",
+          style: {"--depth-position": depthPosition}
+        },
         h(
           "div",
           {className: "mooring-plot__depth-control", style: {"--depth-position": depthPosition}},
@@ -114,6 +117,7 @@ export function MooringHovmoller({outlineUrl, placeholderUrl, selectedDepth, set
             })
           )
         ),
+        h("span", {className: "mooring-plot__depth-guide", "aria-hidden": "true"}),
         h("img", {className: "mooring-plot__image", src: placeholderUrl, alt: `${selectedMooring} Hovmoller placeholder visualization`})
       )
     )
