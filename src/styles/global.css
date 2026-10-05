@@ -31,7 +31,7 @@ body {
   min-height: 100vh;
   margin: 0;
   display: grid;
-  grid-template-rows: minmax(420px, 1.15fr) minmax(280px, 0.85fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 8px;
   padding: 0;
   box-sizing: border-box;
@@ -113,8 +113,8 @@ body {
 }
 
 .mooring-plot__depth-control {
-  width: var(--mooring-outline-size);
-  flex: 0 0 var(--mooring-outline-size);
+  width: var(--plot-left);
+  flex: 0 0 var(--plot-left);
   height: 100%;
   display: flex;
   align-items: center;
@@ -182,7 +182,7 @@ body {
   text-align: right;
   transform: translateY(-50%);
   white-space: nowrap;
-  cursor: ns-resize;
+  cursor: pointer;
   user-select: none;
   z-index: 7;
 }
@@ -200,6 +200,7 @@ body {
   z-index: 4;
   writing-mode: vertical-lr;
   direction: ltr;
+  cursor: pointer;
 }
 
 .mooring-plot__depth-slider::-webkit-slider-thumb {
@@ -227,6 +228,16 @@ body {
   font-weight: 700;
   line-height: 1.2;
   cursor: pointer;
+}
+
+.mooring-plot__mooring-label {
+  max-width: 260px;
+  padding: 0 6px 0 0;
+  color: #202020;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .mooring-plot__select:focus-visible {
@@ -257,6 +268,8 @@ body {
 
 .mooring-plot__surface {
   --mooring-outline-size: 56px;
+  --plot-left: 50px;
+  --plot-right: 20px;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -279,12 +292,14 @@ body {
   overflow: visible;
 }
 
-.mooring-plot__body--hovmoller {
+.mooring-plot__body--depth-anomaly {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 300px;
   overflow: visible;
 }
 
-.mooring-plot__body--hovmoller .mooring-plot__depth-control {
+.mooring-plot__body--depth-anomaly .mooring-plot__depth-control {
   position: absolute;
   inset: 0 auto 0 0;
   z-index: 2;
@@ -293,8 +308,8 @@ body {
 .mooring-plot__depth-guide {
   position: absolute;
   top: var(--depth-position, 0%);
-  right: 0;
-  left: calc((var(--mooring-outline-size) / 2) + 8px);
+  right: var(--plot-right);
+  left: var(--plot-left);
   height: 0;
   border-top: 1px dashed rgba(71, 85, 105, 0.9);
   pointer-events: none;
@@ -302,26 +317,116 @@ body {
   z-index: 1;
 }
 
-.mooring-plot__body--hovmoller .mooring-plot__image {
+.mooring-plot__image-window {
   position: absolute;
-  inset: 0 0 0 calc((var(--mooring-outline-size) / 2) + 8px);
-  width: calc(100% - (var(--mooring-outline-size) / 2) - 8px);
-  height: 100%;
-  max-height: none;
-  display: block;
-  object-fit: fill;
-  min-width: 0;
+  inset: 0 var(--plot-right) 0 var(--plot-left);
+  overflow: hidden;
   border: 1px solid #e5eaed;
   border-radius: 6px;
 }
 
+.mooring-plot__image-window .mooring-plot__image {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background-repeat: no-repeat;
+}
+
 .mooring-plot__body--timeseries {
+  flex: 0 0 clamp(220px, 30vh, 340px);
   min-height: 200px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #fbfcfc, #f5f8f8);
-  align-items: center;
-  justify-content: center;
+  margin-top: 8px;
+  background: #ffffff;
+}
+
+.mooring-timeseries__chart {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+}
+
+.mooring-timeseries__chart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mooring-timeseries__axis {
+  color: #64748b;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 11px;
+}
+
+.mooring-timeseries__axis .domain,
+.mooring-timeseries__axis .tick line {
+  stroke: #cbd5e1;
+}
+
+.mooring-timeseries__axis-label {
+  fill: #64748b;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mooring-timeseries__zero-line {
+  stroke: #94a3b8;
+  opacity: 0.28;
+}
+
+.mooring-timeseries__line {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mooring-timeseries__hover-guide {
+  stroke: #334155;
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.mooring-timeseries__tooltip {
+  pointer-events: none;
+}
+
+.mooring-timeseries__tooltip rect {
+  fill: rgba(15, 23, 42, 0.94);
+}
+
+.mooring-timeseries__tooltip-date,
+.mooring-timeseries__tooltip-value {
+  fill: #ffffff;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 11px;
+}
+
+.mooring-timeseries__tooltip-value {
+  font-weight: 700;
+}
+
+.mooring-timeseries__brush .selection {
+  fill: rgba(37, 99, 235, 0.12);
+  stroke: #2563eb;
+  stroke-width: 1px;
+}
+
+.mooring-timeseries__brush .overlay {
+  cursor: crosshair;
+}
+
+.mooring-timeseries__empty {
+  fill: #64748b;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+}
+
+.mooring-timeseries__annotation {
+  fill: #475569;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .mooring-plot__empty-state {
@@ -351,7 +456,7 @@ body {
   }
 
   .mooring-plot-stack {
-    grid-template-rows: minmax(390px, auto) minmax(270px, auto);
+    grid-template-rows: minmax(720px, auto);
     gap: 8px;
   }
 
@@ -367,6 +472,11 @@ body {
   }
 
   .mooring-plot__select {
+    max-width: 152px;
+    font-size: 18px;
+  }
+
+  .mooring-plot__mooring-label {
     max-width: 152px;
     font-size: 18px;
   }

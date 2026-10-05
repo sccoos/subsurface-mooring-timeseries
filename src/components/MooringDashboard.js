@@ -1,24 +1,43 @@
 import {createElement as h, useState} from "npm:react";
 import {createRoot} from "npm:react-dom/client";
-import {MooringHovmoller} from "./MooringHovmoller.js";
+import {MooringDepthAnomaly} from "./MooringDepthAnomaly.js";
 import {MooringTimeseriesAtDepth} from "./MooringTimeseriesAtDepth.js";
 
-function MooringDashboard({outlineUrl, placeholderUrl}) {
-  const [selectedDepth, setSelectedDepth] = useState(30);
-  const [selectedMooring, setSelectedMooring] = useState("M1 Mooring");
+function nearestDepth(depths, value) {
+  return depths.reduce((nearest, depth) =>
+    Math.abs(depth - value) < Math.abs(nearest - value) ? depth : nearest
+  );
+}
+
+function MooringDashboard({outlineUrl, depthAnomalyImageUrl, manifest, anomalyRows}) {
+  const targetDepths = manifest.target_depths_m;
+  const [selectedDepth, setSelectedDepth] = useState(() => nearestDepth(targetDepths, 30));
+  const selectedMooring = "M1 Mooring";
+  const [selectedTimeRange, setSelectedTimeRange] = useState(null);
 
   return h(
     "main",
     {className: "mooring-plot-stack"},
-    h(MooringHovmoller, {
+    h(MooringDepthAnomaly, {
       outlineUrl,
-      placeholderUrl,
+      depthAnomalyImageUrl,
+      targetDepths,
+      colorbar: manifest.colorbar,
+      startDate: manifest.start_date,
+      endDate: manifest.end_date,
       selectedDepth,
       setSelectedDepth,
       selectedMooring,
-      setSelectedMooring
-    }),
-    h(MooringTimeseriesAtDepth, {selectedDepth, selectedMooring})
+      selectedTimeRange,
+      timeseries: h(MooringTimeseriesAtDepth, {
+        embedded: true,
+        selectedDepth,
+        anomalyRows,
+        manifest,
+        selectedTimeRange,
+        setSelectedTimeRange
+      })
+    })
   );
 }
 
