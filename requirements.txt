@@ -1,2 +1,6 @@
-pyarrow
+matplotlib
+netCDF4
+numpy
 pandas
+pyarrow
+xarray
