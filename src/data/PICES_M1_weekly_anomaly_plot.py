@@ -194,10 +194,12 @@ def write_weekly_anomaly_parquet(anomaly_frame: pd.DataFrame, parquet_path: Path
     """Write one time-series record per weekly timestamp and target depth."""
     time_series = (
         anomaly_frame.rename_axis("time")
-        .rename_axis("depth_m", axis="columns")
-        .stack(dropna=False)
-        .rename("temperature_anomaly_c")
         .reset_index()
+        .melt(
+            id_vars="time",
+            var_name="depth_m",
+            value_name="temperature_anomaly_c",
+        )
         .sort_values(["time", "depth_m"])
     )
     parquet_path.parent.mkdir(parents=True, exist_ok=True)
