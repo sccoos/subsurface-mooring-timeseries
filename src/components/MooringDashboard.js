@@ -11,7 +11,7 @@ function nearestDepth(depths, value) {
 
 function MooringDashboard({outlineUrl, depthAnomalyImageUrl, manifest, anomalyRows}) {
   const targetDepths = manifest.target_depths_m;
-  const [selectedDepth, setSelectedDepth] = useState(() => nearestDepth(targetDepths, 30));
+  const [selectedDepth, setSelectedDepth] = useState(() => nearestDepth(targetDepths, 60));
   const selectedMooring = "M1 Mooring";
   const [selectedTimeRange, setSelectedTimeRange] = useState(null);
 
