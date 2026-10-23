@@ -141,7 +141,10 @@ def plot_weekly_anomalies(anomaly_frame: pd.DataFrame, output_path: Path) -> Non
     axis.contourf(
         time_grid,
         depth_grid,
-        anomaly_frame.T,
+        # Pandas may expose nullable numeric columns as an object array under
+        # newer releases. Matplotlib's contouring path requires a native
+        # floating-point array for its finite-value check.
+        anomaly_frame.to_numpy(dtype=float, na_value=np.nan).T,
         levels=20,
         cmap="RdBu_r",
         norm=normalization,
