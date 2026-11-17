@@ -4,31 +4,50 @@ import {DuckDBClient} from "npm:@observablehq/duckdb";
 
 document.title = "Subsurface Mooring Timeseries";
 
-const mooringOutlineUrl = await FileAttachment("assets/M1-Mooring-outline.svg").url();
-const mooringArchive = await FileAttachment("data/m1_weekly_anomaly.zip").zip();
-const depthAnomalyImageUrl = await mooringArchive.file("M1_tempanomaly_weekly.png").url();
-const mooringManifest = await mooringArchive.file("M1_tempanomaly_weekly_manifest.json").json();
+const m1OutlineUrl = await FileAttachment("assets/M1-Mooring-outline.svg").url();
+const m1Archive = await FileAttachment("data/m1_weekly_anomaly.zip").zip();
+const delMarArchive = await FileAttachment("data/delmar_weekly_anomaly.zip").zip();
 const anomalyDatabase = await DuckDBClient.of({
-  m1_weekly_anomaly: mooringArchive.file("M1_tempanomaly_weekly.parquet")
+  m1_weekly_anomaly: m1Archive.file("M1_tempanomaly_weekly.parquet"),
+  delmar_weekly_anomaly: delMarArchive.file("DelMar_tempanomaly_weekly.parquet")
 });
-const anomalyTable = await anomalyDatabase.query(`
-  SELECT time, depth_m, temperature_anomaly_c
+const m1AnomalyTable = await anomalyDatabase.query(`
+  SELECT time, depth_m, weekly_temperature_c, week_of_year
   FROM m1_weekly_anomaly
   ORDER BY time, depth_m
 `);
-const anomalyRows = anomalyTable.toArray().map((row) => ({
+const delMarAnomalyTable = await anomalyDatabase.query(`
+  SELECT time, depth_m, weekly_temperature_c, week_of_year
+  FROM delmar_weekly_anomaly
+  ORDER BY time, depth_m
+`);
+const toAnomalyRows = (table) => table.toArray().map((row) => ({
   time: new Date(row.time),
   depth_m: Number(row.depth_m),
-  temperature_anomaly_c: row.temperature_anomaly_c == null ? null : Number(row.temperature_anomaly_c)
+  weekly_temperature_c: row.weekly_temperature_c == null ? null : Number(row.weekly_temperature_c),
+  week_of_year: Number(row.week_of_year)
 }));
+const moorings = [
+  {
+    id: "m1",
+    label: "M1 Mooring",
+    outlineUrl: m1OutlineUrl,
+    depthAnomalyImageUrl: await m1Archive.file("M1_tempanomaly_weekly.png").url(),
+    manifest: await m1Archive.file("M1_tempanomaly_weekly_manifest.json").json(),
+    anomalyRows: toAnomalyRows(m1AnomalyTable)
+  },
+  {
+    id: "delmar",
+    label: "Del Mar",
+    outlineUrl: m1OutlineUrl,
+    depthAnomalyImageUrl: await delMarArchive.file("DelMar_tempanomaly_weekly.png").url(),
+    manifest: await delMarArchive.file("DelMar_tempanomaly_weekly_manifest.json").json(),
+    anomalyRows: toAnomalyRows(delMarAnomalyTable)
+  }
+];
 
 const page = document.createElement("div");
 page.className = "dashboard-page";
-page.append(renderMooringDashboard({
-  outlineUrl: mooringOutlineUrl,
-  depthAnomalyImageUrl,
-  manifest: mooringManifest,
-  anomalyRows
-}));
+page.append(renderMooringDashboard({moorings}));
 display(page);
 ```

@@ -9,11 +9,26 @@ function nearestDepth(depths, value) {
   );
 }
 
-function MooringDashboard({outlineUrl, depthAnomalyImageUrl, manifest, anomalyRows}) {
+function MooringDashboard({moorings}) {
+  const [selectedMooringId, setSelectedMooringId] = useState(() => moorings[0].id);
+  const selectedMooring = moorings.find(({id}) => id === selectedMooringId) ?? moorings[0];
+  const {
+    anomalyRows,
+    depthAnomalyImageUrl,
+    manifest,
+    outlineUrl,
+    label: selectedMooringLabel
+  } = selectedMooring;
   const targetDepths = manifest.target_depths_m;
   const [selectedDepth, setSelectedDepth] = useState(() => nearestDepth(targetDepths, 60));
-  const selectedMooring = "M1 Mooring";
-  const [selectedTimeRange, setSelectedTimeRange] = useState(null);
+  const [hoveredYear, setHoveredYear] = useState(null);
+
+  const selectMooring = (event) => {
+    const nextMooring = moorings.find(({id}) => id === event.target.value);
+    if (!nextMooring) return;
+    setSelectedMooringId(nextMooring.id);
+    setSelectedDepth((currentDepth) => nearestDepth(nextMooring.manifest.target_depths_m, currentDepth));
+  };
 
   return h(
     "main",
@@ -27,15 +42,17 @@ function MooringDashboard({outlineUrl, depthAnomalyImageUrl, manifest, anomalyRo
       endDate: manifest.end_date,
       selectedDepth,
       setSelectedDepth,
-      selectedMooring,
-      selectedTimeRange,
+      selectedMooring: selectedMooringLabel,
+      moorings,
+      selectedMooringId,
+      selectMooring,
+      setHoveredYear,
       timeseries: h(MooringTimeseriesAtDepth, {
         embedded: true,
         selectedDepth,
         anomalyRows,
         manifest,
-        selectedTimeRange,
-        setSelectedTimeRange
+        hoveredYear
       })
     })
   );

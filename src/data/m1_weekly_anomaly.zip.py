@@ -27,7 +27,7 @@ from PICES_M1_weekly_anomaly_plot import (
     download_temperature_data,
     load_temperature,
     plot_weekly_anomalies,
-    weekly_anomalies_by_depth,
+    weekly_temperature_and_anomalies_by_depth,
     write_manifest,
     write_weekly_anomaly_parquet,
 )
@@ -38,7 +38,7 @@ ARCHIVE_MEMBERS = {
     "M1_tempanomaly_weekly_manifest.json": "M1_tempanomaly_weekly_manifest.json",
     "M1_tempanomaly_weekly.parquet": "M1_tempanomaly_weekly.parquet",
 }
-ARCHIVE_SCHEMA_VERSION = 2
+ARCHIVE_SCHEMA_VERSION = 3
 
 
 def build_archive() -> bytes:
@@ -55,10 +55,13 @@ def build_archive() -> bytes:
             output_directory / "m1_temp_sal_fulltimeseries.nc",
         )
         temperature = load_temperature(source_path)
-        anomalies = weekly_anomalies_by_depth(temperature)
+        weekly_temperatures, anomalies = weekly_temperature_and_anomalies_by_depth(temperature)
         plot_weekly_anomalies(anomalies, output_paths["M1_tempanomaly_weekly.png"])
         write_manifest(anomalies, output_paths["M1_tempanomaly_weekly_manifest.json"])
-        write_weekly_anomaly_parquet(anomalies, output_paths["M1_tempanomaly_weekly.parquet"])
+        write_weekly_anomaly_parquet(
+            weekly_temperatures,
+            output_paths["M1_tempanomaly_weekly.parquet"],
+        )
 
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:

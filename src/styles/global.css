@@ -57,54 +57,6 @@ body {
   box-sizing: border-box;
 }
 
-.mooring-plot__header--timeseries {
-  min-height: 72px;
-  flex-basis: 72px;
-}
-
-.mooring-plot__title {
-  margin: 0;
-  color: #202020;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.mooring-plot__heading-group {
-  min-width: 0;
-}
-
-.mooring-plot__eyebrow,
-.mooring-plot__selected-depth span {
-  margin: 0 0 3px;
-  color: #64748b;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.mooring-plot__selected-depth {
-  margin-left: auto;
-  padding-left: 20px;
-  text-align: right;
-}
-
-.mooring-plot__selected-depth span,
-.mooring-plot__selected-depth strong {
-  display: block;
-}
-
-.mooring-plot__selected-depth strong {
-  color: #0f172a;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 17px;
-  line-height: 1.2;
-}
-
 .mooring-plot__outline {
   width: var(--mooring-outline-size);
   height: var(--mooring-outline-size);
@@ -230,14 +182,20 @@ body {
   cursor: pointer;
 }
 
-.mooring-plot__mooring-label {
-  max-width: 260px;
-  padding: 0 6px 0 0;
-  color: #202020;
+.mooring-plot__select-group {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.mooring-plot__select-label {
+  color: #64748b;
   font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .mooring-plot__select:focus-visible {
@@ -296,6 +254,7 @@ body {
   position: relative;
   flex: 1 1 auto;
   min-height: 300px;
+  margin-bottom: 30px;
   overflow: visible;
 }
 
@@ -311,37 +270,79 @@ body {
   right: var(--plot-right);
   left: var(--plot-left);
   height: 0;
-  border-top: 1px dashed rgba(71, 85, 105, 0.9);
+  border-top: 4px solid #ffffff;
   pointer-events: none;
   transform: translateY(-50%);
   z-index: 1;
 }
 
+.mooring-plot__depth-guide::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed #202020;
+}
+
+.mooring-anomaly__hover-guide {
+  pointer-events: none;
+}
+
+.mooring-anomaly__guide-outline {
+  stroke: #ffffff;
+  stroke-width: 4px;
+}
+
+.mooring-anomaly__guide-line {
+  stroke: #202020;
+  stroke-width: 2px;
+}
+
 .mooring-plot__image-window {
   position: absolute;
   inset: 0 var(--plot-right) 0 var(--plot-left);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid #e5eaed;
   border-radius: 6px;
 }
 
-.mooring-plot__image-window .mooring-plot__image {
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  background-repeat: no-repeat;
+.mooring-plot__image-window > svg {
+  display: block;
+  overflow: visible;
+}
+
+.mooring-anomaly__hover-date {
+  fill: #202020;
+  font: 12px "Avenir Next", "Helvetica Neue", sans-serif;
+  pointer-events: none;
+}
+
+.mooring-timeseries__linked-year {
+  fill: none;
+  stroke: #e17b20;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.mooring-timeseries__linked-label {
+  fill: #9b4b0b;
+  font: 12px "Avenir Next", "Helvetica Neue", sans-serif;
+  pointer-events: none;
 }
 
 .mooring-plot__body--timeseries {
-  flex: 0 0 clamp(220px, 30vh, 340px);
+  flex-direction: column;
+  flex: 0 0 auto;
   min-height: 200px;
   margin-top: 8px;
   background: #ffffff;
 }
 
 .mooring-timeseries__chart {
+  flex: 0 0 clamp(220px, 30vh, 340px);
   width: 100%;
-  height: 100%;
+  height: clamp(220px, 30vh, 340px);
   min-height: 200px;
 }
 
@@ -370,14 +371,66 @@ body {
   font-weight: 600;
 }
 
-.mooring-timeseries__zero-line {
+.mooring-timeseries__historical-line {
+  fill: none;
   stroke: #94a3b8;
-  opacity: 0.28;
+  stroke-opacity: 0.36;
+  stroke-width: 1;
 }
 
-.mooring-timeseries__line {
+.mooring-timeseries__climatology-line {
   fill: none;
+  stroke: #79b27b;
+  stroke-width: 2.5;
+}
+
+.mooring-timeseries__prior-line {
+  fill: none;
+  stroke: #3478bc;
   stroke-width: 1.5;
+  stroke-opacity: 1;
+}
+
+.mooring-timeseries__prior-line--emphasized {
+  stroke-width: 3;
+  stroke-opacity: 1;
+}
+
+.mooring-timeseries__current-line {
+  fill: none;
+  stroke: #ad64b5;
+  stroke-width: 3;
+}
+
+.mooring-timeseries__title {
+  margin: 8px var(--plot-right) 0 var(--plot-left);
+  color: #334155;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.mooring-timeseries__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  list-style: none;
+  margin: 8px var(--plot-right) 4px var(--plot-left);
+  padding: 0;
+  color: #475569;
+  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-size: 12px;
+}
+
+.mooring-timeseries__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mooring-timeseries__legend svg {
+  flex: 0 0 30px;
 }
 
 .mooring-timeseries__hover-guide {
@@ -406,48 +459,10 @@ body {
   font-weight: 700;
 }
 
-.mooring-timeseries__brush .selection {
-  fill: rgba(37, 99, 235, 0.12);
-  stroke: #2563eb;
-  stroke-width: 1px;
-}
-
-.mooring-timeseries__brush .overlay {
-  cursor: crosshair;
-}
-
 .mooring-timeseries__empty {
   fill: #64748b;
   font-family: "Avenir Next", "Helvetica Neue", sans-serif;
   font-size: 14px;
-}
-
-.mooring-timeseries__annotation {
-  fill: #475569;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.mooring-plot__empty-state {
-  max-width: 340px;
-  padding: 24px;
-  color: #64748b;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.mooring-plot__empty-state p {
-  margin: 0;
-}
-
-.mooring-plot__empty-state .mooring-plot__empty-title {
-  margin-bottom: 4px;
-  color: #334155;
-  font-size: 15px;
-  font-weight: 700;
 }
 
 @media (max-width: 720px) {
@@ -476,11 +491,6 @@ body {
     font-size: 18px;
   }
 
-  .mooring-plot__mooring-label {
-    max-width: 152px;
-    font-size: 18px;
-  }
-
   .mooring-plot__colorbar {
     width: 96px;
     font-size: 10px;
@@ -490,144 +500,4 @@ body {
     --mooring-outline-size: 44px;
     padding: 0 14px 14px;
   }
-
-  .mooring-plot__title {
-    font-size: 18px;
-  }
-}
-
-.upwelling-dashboard {
-  width: 100%;
-  height: 100%;
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-.dashboard-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 18px;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 24px;
-  font-weight: 700;
-  color: #161616;
-}
-
-.dashboard-control__label {
-  line-height: 1;
-}
-
-.dashboard-control__select {
-  min-width: 116px;
-  padding: 10px 14px;
-  border: 2px solid #9ca3af;
-  border-radius: 8px;
-  background: #f7f7f7;
-  font: inherit;
-  font-weight: 500;
-  color: #161616;
-}
-
-.plot-grid {
-  flex: 0 0 80vh;
-  height: 80vh;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.plot-card__chart {
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-}
-
-.upwelling-chart {
-  width: 100%;
-  height: 100%;
-  display: block;
-  overflow: visible;
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.grid line {
-  stroke: rgba(15, 23, 42, 0.12);
-  stroke-width: 1;
-}
-
-.axis-domain,
-.axis-tick {
-  stroke: #6b7280;
-}
-
-.axis-label {
-  fill: #2c2c2c;
-  font-size: 14px;
-}
-
-.chart-title {
-  fill: #202020;
-  font-size: 21px;
-  font-weight: 700;
-}
-
-.chart-y-label {
-  fill: #202020;
-  font-size: 18px;
-}
-
-.legend-box {
-  fill: rgba(255, 255, 255, 0.9);
-  stroke: rgba(0, 0, 0, 0.45);
-  stroke-width: 1;
-}
-
-.legend-label {
-  fill: #1f1f1f;
-  font-size: 13px;
-}
-
-.hover-overlay {
-  fill: transparent;
-  cursor: crosshair;
-}
-
-.hover-marker {
-  stroke: #374151;
-  stroke-width: 1.25;
-  stroke-dasharray: 4 4;
-  pointer-events: none;
-}
-
-.hover-point {
-  stroke: #ffffff;
-  stroke-width: 2;
-  pointer-events: none;
-}
-
-.hover-point--mean {
-  fill: #1f1f1f;
-}
-
-.hover-tooltip {
-  pointer-events: none;
-}
-
-.hover-tooltip rect {
-  fill: rgba(255, 255, 255, 0.96);
-  stroke: rgba(0, 0, 0, 0.45);
-}
-
-.hover-tooltip text {
-  fill: #1f1f1f;
-  font-size: 12px;
-}
-
-.hover-tooltip__date {
-  font-weight: 700;
 }

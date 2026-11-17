@@ -1,4 +1,5 @@
 import {createElement as h, useRef} from "npm:react";
+import {MooringAnomalyTimeline} from "./MooringAnomalyTimeline.js";
 
 function nearestDepth(depths, depth) {
   return depths.reduce((nearest, candidate) =>
@@ -15,7 +16,7 @@ function setDepthFromPointer(event, railRef, targetDepths, setSelectedDepth) {
   setSelectedDepth(nearestDepth(targetDepths, depth));
 }
 
-export function MooringDepthAnomaly({outlineUrl, depthAnomalyImageUrl, targetDepths, colorbar, startDate, endDate, selectedDepth, setSelectedDepth, selectedMooring, selectedTimeRange, timeseries}) {
+export function MooringDepthAnomaly({outlineUrl, depthAnomalyImageUrl, targetDepths, colorbar, startDate, endDate, selectedDepth, setSelectedDepth, selectedMooring, moorings, selectedMooringId, selectMooring, setHoveredYear, timeseries}) {
   const railRef = useRef(null);
   const minimumDepth = targetDepths[0];
   const maximumDepth = targetDepths[targetDepths.length - 1];
@@ -26,14 +27,6 @@ export function MooringDepthAnomaly({outlineUrl, depthAnomalyImageUrl, targetDep
   const colorbarGradient = `linear-gradient(to right, ${colorbar.stops
     .map(({offset, color}) => `${color} ${offset * 100}%`)
     .join(", ")})`;
-  const fullStart = new Date(startDate).getTime();
-  const fullEnd = new Date(endDate).getTime();
-  const [rangeStart, rangeEnd] = selectedTimeRange ?? [fullStart, fullEnd];
-  const fullDuration = fullEnd - fullStart;
-  const imageStart = Math.max(0, Math.min(1, (rangeStart - fullStart) / fullDuration));
-  const imageEnd = Math.max(imageStart, Math.min(1, (rangeEnd - fullStart) / fullDuration));
-  const imageWidth = Math.max(0.001, imageEnd - imageStart);
-  const imagePosition = imageWidth >= 1 ? 0 : (imageStart / (1 - imageWidth)) * 100;
   const depthMarkers = targetDepths.map((depth) =>
     h("span", {
       key: depth,
@@ -62,8 +55,22 @@ export function MooringDepthAnomaly({outlineUrl, depthAnomalyImageUrl, targetDep
       h(
         "header",
         {className: "mooring-plot__header"},
-        h("img", {className: "mooring-plot__outline", src: outlineUrl, alt: "M1 mooring outline"}),
-        h("div", {className: "mooring-plot__mooring-label"}, selectedMooring),
+        h("img", {className: "mooring-plot__outline", src: outlineUrl, alt: `${selectedMooring} outline`}),
+        h(
+          "div",
+          {className: "mooring-plot__select-group"},
+          h("label", {className: "mooring-plot__select-label", htmlFor: "mooring-select"}, "Mooring"),
+          h(
+            "select",
+            {
+              id: "mooring-select",
+              className: "mooring-plot__select",
+              value: selectedMooringId,
+              onChange: selectMooring
+            },
+            moorings.map(({id, label}) => h("option", {key: id, value: id}, label))
+          )
+        ),
         h(
           "div",
           {
@@ -137,22 +144,10 @@ export function MooringDepthAnomaly({outlineUrl, depthAnomalyImageUrl, targetDep
           )
         ),
         h("span", {className: "mooring-plot__depth-guide", "aria-hidden": "true"}),
-        h(
-          "div",
-          {
-            className: "mooring-plot__image-window"
-          },
-          h("div", {
-            className: "mooring-plot__image",
-            role: "img",
-            "aria-label": `${selectedMooring} depth anomaly visualization`,
-            style: {
-              backgroundImage: `url("${depthAnomalyImageUrl}")`,
-              backgroundSize: `${100 / imageWidth}% 100%`,
-              backgroundPosition: `${imagePosition}% 0`
-            }
-          })
-        )
+        h(MooringAnomalyTimeline, {
+          imageUrl: depthAnomalyImageUrl, startDate, endDate,
+          label: `${selectedMooring} depth anomaly`, setHoveredYear
+        })
       ),
       timeseries
     )

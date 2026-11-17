@@ -38,6 +38,10 @@ DEFAULT_OUTPUT_PATH = DATA_DIRECTORY / "M1_tempanomaly_weekly.png"
 DEFAULT_MANIFEST_PATH = DATA_DIRECTORY / "M1_tempanomaly_weekly_manifest.json"
 DEFAULT_PARQUET_PATH = DATA_DIRECTORY / "M1_tempanomaly_weekly.parquet"
 TARGET_DEPTHS = [1.0, 10.0, 20.0, 40.0, 60.0, 80.0, 100.0, 150.0, 200.0, 250.0, 300.0]
+MOORING_METADATA = {
+    "name": "M1 Mooring",
+    "location": "Monterey Bay, CA",
+}
 
 
 def standardize_coords(data_array: xr.DataArray) -> xr.DataArray:
@@ -109,8 +113,11 @@ def load_temperature(data_path: Path) -> xr.DataArray:
     return standardize_time_coord(temperature).sortby("time")
 
 
-def weekly_anomalies_by_depth(temperature: xr.DataArray) -> pd.DataFrame:
-    """Calculate weekly temperature anomalies relative to each week's mean."""
+def weekly_temperature_and_anomalies_by_depth(
+    temperature: xr.DataArray,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return weekly temperatures and week-of-year anomalies at every target depth."""
+    weekly_temperatures = {}
     anomalies = {}
     for depth in TARGET_DEPTHS:
         series = select_depth_timeseries(temperature, depth).to_series().dropna()
@@ -120,11 +127,23 @@ def weekly_anomalies_by_depth(temperature: xr.DataArray) -> pd.DataFrame:
         weekly = temperature_frame.resample("W").mean().dropna()
         weekly["weekofyear"] = weekly.index.isocalendar().week
         weekly_climatology = weekly.groupby("weekofyear")["temperature"].mean()
+        weekly_temperatures[depth] = weekly["temperature"]
         anomalies[depth] = weekly["temperature"] - weekly["weekofyear"].map(weekly_climatology)
 
+    weekly_temperature_frame = pd.DataFrame(weekly_temperatures)
+    weekly_temperature_frame.index = pd.to_datetime(weekly_temperature_frame.index)
     anomaly_frame = pd.DataFrame(anomalies)
     anomaly_frame.index = pd.to_datetime(anomaly_frame.index)
-    return anomaly_frame.sort_index(axis=1)
+    return (
+        weekly_temperature_frame.sort_index(axis=1),
+        anomaly_frame.sort_index(axis=1),
+    )
+
+
+def weekly_anomalies_by_depth(temperature: xr.DataArray) -> pd.DataFrame:
+    """Calculate weekly temperature anomalies relative to each week's mean."""
+    _, anomaly_frame = weekly_temperature_and_anomalies_by_depth(temperature)
+    return anomaly_frame
 
 
 def plot_weekly_anomalies(anomaly_frame: pd.DataFrame, output_path: Path) -> None:
@@ -170,6 +189,7 @@ def write_manifest(anomaly_frame: pd.DataFrame, manifest_path: Path) -> None:
         for step in range(21)
     ]
     manifest = {
+        "mooring": MOORING_METADATA,
         "target_depths_m": [float(depth) for depth in anomaly_frame.columns],
         "start_date": anomaly_frame.index.min().date().isoformat(),
         "end_date": anomaly_frame.index.max().date().isoformat(),
@@ -193,18 +213,23 @@ def write_manifest(anomaly_frame: pd.DataFrame, manifest_path: Path) -> None:
         manifest_file.write("\n")
 
 
-def write_weekly_anomaly_parquet(anomaly_frame: pd.DataFrame, parquet_path: Path) -> None:
-    """Write one time-series record per weekly timestamp and target depth."""
+def write_weekly_anomaly_parquet(
+    weekly_temperature_frame: pd.DataFrame,
+    parquet_path: Path,
+) -> None:
+    """Write nonmissing weekly temperatures used by the annual chart."""
     time_series = (
-        anomaly_frame.rename_axis("time")
+        weekly_temperature_frame.rename_axis("time")
         .reset_index()
         .melt(
             id_vars="time",
             var_name="depth_m",
-            value_name="temperature_anomaly_c",
+            value_name="weekly_temperature_c",
         )
-        .sort_values(["time", "depth_m"])
+        .dropna(subset=["weekly_temperature_c"])
     )
+    time_series["week_of_year"] = time_series["time"].dt.isocalendar().week.astype("int16")
+    time_series = time_series.sort_values(["time", "depth_m"])
     parquet_path.parent.mkdir(parents=True, exist_ok=True)
     time_series.to_parquet(parquet_path, index=False)
 
@@ -226,10 +251,10 @@ def main() -> None:
             Path(temporary_directory) / "m1_temp_sal_fulltimeseries.nc",
         )
         temperature = load_temperature(data_path)
-        anomalies = weekly_anomalies_by_depth(temperature)
+        weekly_temperatures, anomalies = weekly_temperature_and_anomalies_by_depth(temperature)
         plot_weekly_anomalies(anomalies, args.output_path)
         write_manifest(anomalies, args.manifest_path)
-        write_weekly_anomaly_parquet(anomalies, args.parquet_path)
+        write_weekly_anomaly_parquet(weekly_temperatures, args.parquet_path)
     print(f"Saved {args.output_path}")
     print(f"Saved {args.manifest_path}")
     print(f"Saved {args.parquet_path}")

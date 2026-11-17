@@ -7,5 +7,5 @@ export default {
   footer: false,
   pager: false,
   toc: false,
-  globalStylesheets: ["./styles/components.css", "./styles/global.css"]
+  globalStylesheets: ["./styles/global.css"]
 };
